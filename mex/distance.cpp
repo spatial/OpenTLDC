@@ -1,100 +1,104 @@
-// Copyright 2011 Zdenek Kalal
-//
-// This file is part of TLD.
-// 
-// TLD is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// TLD is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with TLD.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * OpenTLDC is an algorithm for tracking of unknown objects
+ * in unconstrained video streams. It is based on TLD,
+ * published by Zdenek Kalal
+ * (see http://info.ee.surrey.ac.uk/Personal/Z.Kalal/tld.html).
+ *
+ * Copyright (C) 2011 Sascha Schrader, Stefan Brending, Adrian Block
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 
 #include <stdio.h>
 #include "mex.h"
-#include "math.h"
+#include <iostream>
+#include <math.h>
 
 // correlation
-double ccorr(double *f1,double *f2,int numDim) {
+double ccorr(Eigen::Matrix<double, Eigen::Dynamic, 1> const & f1, Eigen::Matrix<
+		double, Eigen::Dynamic, 1> const & f2,int numDim) {
 	double f = 0;
 	for (int i = 0; i<numDim; i++) {
-		f += f1[i]*f2[i];
+		f += f1(i)*f2(i);
 	}
 	return f;
 }
 
 // correlation normalized
-double ccorr_normed(double *f1,double *f2,int numDim) {
+double ccorr_normed(Eigen::Matrix<double, Eigen::Dynamic, 1> const & f1, Eigen::Matrix<
+		double, Eigen::Dynamic, 1> const & f2, int numDim) {
 	double corr = 0;
 	double norm1 = 0;
 	double norm2 = 0;
 
-	for (int i = 0; i<numDim; i++) {
-		corr += f1[i]*f2[i];
-		norm1 += f1[i]*f1[i];
-		norm2 += f2[i]*f2[i];
+	for (int i = 0; i < numDim; i++) {
+		corr += f1(i) * f2(i);
+		norm1 += f1(i) * f1(i);
+		norm2 += f2(i) * f2(i);
 	}
 	// normalization to <0,1>
-	return (corr / sqrt(norm1*norm2) + 1) / 2.0;
+	return (corr / sqrt(norm1 * norm2) + 1) / 2.0;
 }
 
 // euclidean distance
-double euclidean(double *f1,double *f2,int numDim) {
+double euclidean(Eigen::Matrix<double, Eigen::Dynamic, 1> const & f1, Eigen::Matrix<
+		double, Eigen::Dynamic, 1> const & f2, int numDim) {
 
 	double sum = 0;
-	for (int i = 0; i<numDim; i++) {
-		sum += (f1[i]-f2[i])*(f1[i]-f2[i]);
+	for (int i = 0; i < numDim; i++) {
+		sum += (f1(i) - f2(i)) * (f1(i) - f2(i));
 	}
 	return sqrt(sum);
 }
 
+Eigen::MatrixXd distance(Eigen::MatrixXd const &x1, Eigen::MatrixXd const &x2, int nx2,
+		unsigned int flag) {
 
-void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
-{
+	unsigned int N1 = x1.cols();
+	unsigned int N2 = nx2;
 
-	if (nrhs == 0 || nrhs != 3) {
-		mexPrintf("d = distance(x1,x2,flag\n");
-		mexPrintf("flag = 1 : normalized correlation\n");
-		mexPrintf("flag = 2 : euclidean distance\n");
-		return;
-	}
-
-	double *x1 = mxGetPr(prhs[0]); int N1 = mxGetN(prhs[0]); int M1 = mxGetM(prhs[0]);
-	double *x2 = mxGetPr(prhs[1]); int N2 = mxGetN(prhs[1]); int M2 = mxGetM(prhs[1]);
+	unsigned int M1 = x1.rows();
+	unsigned int M2 = x2.rows();
 
 	if (M1 != M2) {
-		mexPrintf("Wrong input!\n");
-		return;
+		std::cout << "Wrong Input" << std::endl;
+		Eigen::MatrixXd out = Eigen::MatrixXd::Constant(3, 3,
+				std::numeric_limits<double>::quiet_NaN());
+		return out;
 	}
 
-	plhs[0] = mxCreateDoubleMatrix(N1, N2, mxREAL);
-	double *resp = mxGetPr(plhs[0]);
+	Eigen::MatrixXd out(N1, N2);
 
-	int flag = *mxGetPr(prhs[2]);
+	switch (flag) {
+	case 1:
+		for (unsigned int i = 0; i < N2; i++) {
+			for (unsigned int ii = 0; ii < N1; ii++) {
+				out(ii, i) = ccorr_normed(x1.col(ii), x2.col(i), M1);
+			}
+		}
+		return out;
+	case 2:
 
-	switch (flag)
-	{
-	case 1 :
-		for (int i = 0; i < N2; i++) {
-			for (int ii = 0; ii < N1; ii++) {
-				*resp++ = ccorr_normed(x1+ii*M1,x2+i*M1,M1);
+		for (unsigned int i = 0; i < N2; i++) {
+			for (unsigned int ii = 0; ii < N1; ii++) {
+				out(ii, i) = euclidean(x1.col(ii), x2.col(i), M1);
 			}
 		}
 
-		return;
-	case 2 :
-
-		for (int i = 0; i < N2; i++) {
-			for (int ii = 0; ii < N1; ii++) {
-				*resp++ = euclidean(x1+ii*M1,x2+i*M1,M1);
-			}
-		}
-
-		return;
+		return out;
 	}
+
+	return out;
 }

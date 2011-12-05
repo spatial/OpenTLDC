@@ -1,31 +1,53 @@
-TLD (aka Predator)
-----------------------------------------------------------------------------
+================
+TLDC 
+================
 
-TLD is an algorithm for tracking of unknown objects in unconstrained video streams. The object of interest is defined by a bounding box in a single frame. TLD simultaneously tracks the object, learns its appearance and detects it whenever it appears in the video.
+OpenTLDC is an algorithm for tracking of unknown objects in unconstrained video streams. 
+It is based on TLD, published by Zdenek Kalal. 
+It does not depend on any training data, it learns and detects objects in real time.
 
-1. License
+================
+License
+================
 
-This source code is released under the GPL license version 3.0.  For alternative licensing options contact the main author:  zdenek.kalal@gmail.com.
+TLDC is released under the GPL license version 3.0. For more info see http://www.gnu.org/licenses/gpl-3.0.txt
 
-2. Project website
+================
+Installing
+================
 
-You can find more information about TLD at: http://info.ee.surrey.ac.uk/Personal/Z.Kalal/tld.html. This includes the description of TLD, links to research papers, posters and the licensing options.
+1.) TLDC requires the following libraries:
+- OpenCV 2.1 (http://opencv.willowgarage.com/wiki/)
+- Eigen 3.0.2 (http://eigen.tuxfamily.org/index.php?title=Main_Page)
 
-3. Wiki
+2.) Modify Makefile
+- Edit paths to eigen3 and OpenCV libraries in line 2:
+	INCLUDES := -OPENCVPATH -EIGEN3PATH
 
-Many questions regarding TLD are already answered at the following wiki: https://github.com/zk00006/OpenTLD/wiki. These questions include installation and common errors. Make sure to check the wiki first.
+3.) make
 
-4. Discussion group
+================
+Usage
+================
 
-If you do not find your answer in the wiki, ask the question directly at the following discussion group:  http://groups.google.com/group/opentld. There are currently around 250 participants and it is likely you will get the answer soon.  
+tldc [args]
 
-5. Feedback
+[-x] : Initial boundingbox x-positions, expects two values (xmin xmax)
+[-y] : Initial boundingbox y-positions, expects two values (ymin ymax)
+[-vid] : Uses videosource, expects path to source ("/home/.....")
+[-cam] : Uses camera as source, expects index of camera
+[-nodisplay] : Turns output window off
+[-fr] : First frame index of video stream
 
-Predator learns from its errors; let us do the same in this community! Therefore, if you get an answer that was not covered in the wiki, please update the wiki so that other people do not have to face the same problem. The wiki is freely editable at the moment. 
+Example:
+./tldc -vid "/home/tldc/test.avi" -fr 1061 -x 310 380 -y 110 200
 
-6. Citations
+================
+Related Work
+================
 
-In case you use TLD in an academic work, please cite the following paper:
+TLDC is a rewrite of TLD in C++, originally written in MATLAB by Zdenek Kalal.
+For more info, see:
 
 @article{Kalal2010,
  author = {Kalal, Z and Matas, J and Mikolajczyk, K},
@@ -34,7 +56,24 @@ In case you use TLD in an academic work, please cite the following paper:
  year = {2010}
 } 
 
+================
+Acknowledgements
+================
+TLDC was started as a student prodect under the supersivion of
+Arne Kreutzmann , Jasper van de Ven, Dr.-Ing. Falko Schmid and Prof. Ph. D. Christian Freksa, 
+of the workgroup Cognitive Systems at the University of Bremen.
 
-----------------------------------------------------------------------------
+Contact:
+Cognitive Systems (CoSy)
+FB3 - Informatics
+Universität Bremen
+P.O. Box 330 440
+28334 Bremen
+cosy@informatik.uni-bremen.de
 
-(c) 2011 Zdenek Kalal, zdenek.kalal@gmail.com
+================
+
+(c) 2011 Sascha Schrader, Stefan Brending, Adrian Block
+
+
+
