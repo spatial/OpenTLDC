@@ -25,9 +25,11 @@
 /* Converts an IplImage to Eigen Matrix */
 Eigen::Matrix<double, PATCHSIZE * PATCHSIZE, 1> tldPatch2Pattern(IplImage* patch,
 		Patchsize const& patchsize) {
+
 	IplImage* dest = cvCreateImage(
 			cvSize((int) patchsize.x, (int) patchsize.y), patch->depth,
 			patch->nChannels);
+
 	//bilinear' is faster
 	cvResize(patch, dest);
 	Eigen::MatrixXd pattern(patchsize.x * patchsize.y, 1);
@@ -35,6 +37,7 @@ Eigen::Matrix<double, PATCHSIZE * PATCHSIZE, 1> tldPatch2Pattern(IplImage* patch
 		for (int y = 0; y < dest->height; y++)
 			pattern(x*patchsize.x + y, 0) = double(((uchar*) (dest->imageData + dest->widthStep
 					* (y)))[x]);
+
 	// calculate column-wise mean
 	Eigen::RowVectorXd mean(patchsize.x);
 	mean = pattern.colwise().mean();

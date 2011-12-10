@@ -27,6 +27,8 @@
 #define NFEATURES 13 // Features per tree
 #define NTREES 10 // number of trees
 #define PATCHSIZE 15 // 15 x 15
+#define MAXPATCHES 100
+#define MAXDT 100
 #define DIMX 640
 #define DIMY 480
 
@@ -91,8 +93,8 @@ typedef struct {
 
 // Temporal confidelity and pattern
 typedef struct {
-	Eigen::MatrixXd conf;
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> patt;
+	Eigen::VectorXd conf;
+	Eigen::Matrix<double, 10, Eigen::Dynamic> patt;
 } Tmp;
 
 typedef struct {
@@ -121,13 +123,10 @@ typedef struct {
 } Control;
 
 typedef struct {
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> bb;
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> patt;
-	Eigen::Matrix<int, 1, Eigen::Dynamic> idx;
-	Eigen::VectorXd conf1;
-	Eigen::VectorXd conf2;
-	Eigen::Matrix<double, 3, Eigen::Dynamic> isin;
-	Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> patch;
+	Eigen::Matrix<double, 4, MAXDT> bb;
+	int nbb;
+	Eigen::Matrix<double, MAXDT, 1> conf2;
+	Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), MAXDT> patch;
 } Detection;
 
 // Structure of TLD
@@ -164,8 +163,8 @@ typedef struct {
 	int npex;
 	int nnex;
 
-	Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), Eigen::Dynamic> pex;
-	Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), Eigen::Dynamic> nex;
+	Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), MAXPATCHES> pex;
+	Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), MAXPATCHES> nex;
 
 	//Eigen::MatrixXd xFJ;
 

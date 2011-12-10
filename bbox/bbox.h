@@ -163,8 +163,9 @@ Eigen::Vector4d bb_predict(Eigen::VectorXd const & bb,
 void bb_scan(TldStruct& tld, Eigen::Vector4d const & bb,
 		Eigen::Vector2i imsize, int minwin);
 
-Eigen::MatrixXd bb_cluster_confidence(Eigen::MatrixXd const & iBB,
-		Eigen::VectorXd const & iConf);
+Eigen::Matrix<double, 4, Eigen::Dynamic> bb_cluster_confidence(Eigen::Matrix<
+		double, 4, 20> const & iBB, Eigen::Matrix<double, 20, 1> const & iConf,
+		int nD);
 
 /*Calculates the distance between two given bounding boxes*/
 Eigen::MatrixXd bb_distance(Eigen::MatrixXd const & bb1,

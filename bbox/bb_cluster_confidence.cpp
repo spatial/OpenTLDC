@@ -27,12 +27,14 @@
 #include <limits>
 #include <list>
 
-Eigen::MatrixXd bb_cluster_confidence(Eigen::MatrixXd const & iBB,
-		Eigen::VectorXd const & iConf) {
+Eigen::Matrix<double, 4, Eigen::Dynamic> bb_cluster_confidence(Eigen::Matrix<
+		double, 4, 20> const & iBB, Eigen::Matrix<double, 20, 1> const & iConf,
+		int nD) {
+
 	double SPACE_THR = 0.5;
 	Eigen::VectorXd T;
 	Eigen::VectorXd Tbak;
-	unsigned int iBBcols = iBB.cols();
+	unsigned int iBBcols = nD;
 	Eigen::MatrixXd bdist;
 	//Calculates the index of the bb that fits the best
 	switch (iBBcols) {
@@ -40,12 +42,12 @@ Eigen::MatrixXd bb_cluster_confidence(Eigen::MatrixXd const & iBB,
 	case 0:
 		T = Eigen::VectorXd::Zero(1);
 		break;
-	//1 col, set index to 0;
+		//1 col, set index to 0;
 	case 1:
 		T.resize(1);
 		T(0) = 0;
 		break;
-	//2 cols, set indices to zero; if above treshhold to 1
+		//2 cols, set indices to zero; if above treshhold to 1
 	case 2:
 		T = Eigen::VectorXd::Zero(2);
 		bdist = bb_distance(iBB);
@@ -53,12 +55,12 @@ Eigen::MatrixXd bb_cluster_confidence(Eigen::MatrixXd const & iBB,
 			T(1) = 1;
 		}
 		break;
-	//workaround for clustering.
+		//workaround for clustering.
 	default:
 		Eigen::Vector4d meanBB = iBB.rowwise().mean();
 		int maxIndex = 0;
 		double maxDist = 10;
-		for (int penis = 0; penis < iBB.cols(); penis++) {
+		for (int penis = 0; penis < nD; penis++) {
 			Eigen::MatrixXd bd = bb_distance(iBB.col(penis), meanBB);
 			//save the shortest distance
 			if (bd(0, 0) < maxDist) {
@@ -68,7 +70,7 @@ Eigen::MatrixXd bb_cluster_confidence(Eigen::MatrixXd const & iBB,
 		}
 		//set the indices to the index of the bounding box with the
 		//shortest distance
-		T = Eigen::VectorXd::Constant(iBB.cols(), maxIndex);
+		T = Eigen::VectorXd::Constant(iBBcols, maxIndex);
 		break;
 	}
 	Eigen::VectorXd idx_cluster;

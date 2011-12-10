@@ -41,7 +41,6 @@
  */
 void tldDisplay(int i, unsigned long index, TldStruct& tld, double fps) {
 
-	bool FINISH = false;
 	IplImage* inputClone = cvCloneImage(tld.currentImg.input);
 
 	if (i == 0) {
@@ -57,7 +56,7 @@ void tldDisplay(int i, unsigned long index, TldStruct& tld, double fps) {
 
 		cvShowImage("Result", tld.handle);
 		if (waitKey(10) >= 0)
-			FINISH = true;
+			std::cout << "key pressed" << std::endl;
 
 
 	} else {
@@ -165,7 +164,7 @@ void tldDisplay(int i, unsigned long index, TldStruct& tld, double fps) {
 
 		cvShowImage("Result", tld.handle);
 		if (waitKey(10) >= 0)
-			FINISH = true;
+			std::cout << "key pressed" << std::endl;
 
 	}
 

@@ -33,13 +33,15 @@
  * @param nX indices of negative patches
  * @param nEx negative patches
  */
-void tldGenerateNegativeData(TldStruct& tld, Eigen::MatrixXd const & overlap,
-		ImgType& img, Eigen::MatrixXd& nX, Eigen::MatrixXd& nEx) {
+void tldGenerateNegativeData(TldStruct& tld,
+		Eigen::RowVectorXd const & overlap, ImgType& img, Eigen::Matrix<double,
+				NTREES, Eigen::Dynamic>& nX, Eigen::Matrix<double, (PATCHSIZE
+				* PATCHSIZE), Eigen::Dynamic>& nEx) {
 
 	// Measure patterns on all bboxes that are far from initial bbox
 	std::vector<int> idxN;
-	for (unsigned int i = 0; i < overlap.cols(); i++) {
-		if (overlap(0, i) < tld.n_par.overlap) {
+	for (unsigned int i = 0; i < overlap.size(); i++) {
+		if (overlap(i) < tld.n_par.overlap) {
 			idxN.push_back(i);
 		}
 	}
@@ -71,9 +73,9 @@ void tldGenerateNegativeData(TldStruct& tld, Eigen::MatrixXd const & overlap,
 	idx = randvalues(in, tld.n_par.num_patches);
 
 	// get bboxes
-	Eigen::MatrixXd bb(tld.grid.rows(), idx.cols());
+	Eigen::MatrixXd bb(4, idx.cols());
 	for (unsigned int i = 0; i < idx.cols(); i++)
-		bb.col(i) = tld.grid.col(idxN2[int(idx(0, i))]);
+		bb.col(i) = tld.grid.block(0, idxN2[int(idx(0, i))], 4, 1);
 
 	// get patches from image
 	nEx.resize(tld.model->patchsize.x * tld.model->patchsize.y, bb.cols());

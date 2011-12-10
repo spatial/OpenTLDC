@@ -29,20 +29,26 @@
 #include <limits>
 
 void tldProcessFrame(TldStruct& tld, unsigned long i) {
+
 	double t = (double) getTickCount();
 	tld.prevImg = tld.currentImg;
+
 	//Input image
 	ImgType im0;
 	im0.input = img_get();
+
 	//Blurred image
-	//im0.blur = cvCloneImage(im0.input);
 	im0.blur = img_blur(im0.input);
+
 	//color image with 3 channels
 	tld.currentImg = im0;
+
 	//switch from current to previous
 	/* bbox */
 	tld.prevBB = tld.currentBB;
-	tld.currentBB = Eigen::Vector4d::Constant(std::numeric_limits<double>::quiet_NaN());
+	tld.currentBB = Eigen::Vector4d::Constant(
+			std::numeric_limits<double>::quiet_NaN());
+
 	/* valid */
 	tld.prevValid = tld.currentValid;
 	tld.currentValid = 0;
@@ -55,9 +61,10 @@ void tldProcessFrame(TldStruct& tld, unsigned long i) {
 
 	//DETECTOR
 	//detect appearances by cascaded detector (variance filter -> ensemble classifier -> nearest neighbor)
-	Eigen::MatrixXd dBB;
+	Eigen::Matrix<double, 4, 20> dBB;
+	int nD = 0;
 	t = (double) getTickCount();
-	Eigen::VectorXd detConf = tldDetection(tld, i, dBB);
+	Eigen::Matrix<double, 20, 1> detConf = tldDetection(tld, i, dBB, nD);
 	t = ((double) getTickCount() - t) / getTickFrequency();
 
 	//INTEGRATOR
@@ -77,12 +84,14 @@ void tldProcessFrame(TldStruct& tld, unsigned long i) {
 		tld.size = 1;
 		if (DT) {
 			//cluster detections
-			Eigen::MatrixXd cluster = bb_cluster_confidence(dBB, detConf);
+			Eigen::MatrixXd cluster = bb_cluster_confidence(dBB, detConf, nD);
+
 			//get indexes of all clusters that are far from tracker and are more confident than the tracker
 			unsigned int len = cluster.cols() / 3;
 			Eigen::MatrixXd cBB(4, len);
 			cBB = cluster.block(0, 0, 4, len);
-			Eigen::MatrixXd overlap = bb_overlap(tld.currentBB, cBB);
+			Eigen::MatrixXd overlap = bb_overlap(tld.currentBB, len, cBB);
+
 			Eigen::MatrixXd cConf(1, len);
 			cConf = cluster.block(0, len, 1, len);
 			Eigen::MatrixXd cSize(1, len);
@@ -100,7 +109,7 @@ void tldProcessFrame(TldStruct& tld, unsigned long i) {
 			} else {
 				//adjust the tracker's trajectory
 				//get indexes of close detections
-				overlap = bb_overlap(tldTrack.topRows(4), tld.dt.bb);
+				overlap = bb_overlap(tldTrack.topRows(4), tld.dt.nbb, tld.dt.bb);
 				std::vector<unsigned int> idTr;
 				for (int p = 0; p < overlap.cols(); p++)
 					if (overlap(0, p) > 0.7)
@@ -118,7 +127,7 @@ void tldProcessFrame(TldStruct& tld, unsigned long i) {
 	} else {
 		if (DT) {
 			//cluster detections
-			Eigen::MatrixXd cluster = bb_cluster_confidence(dBB, detConf);
+			Eigen::MatrixXd cluster = bb_cluster_confidence(dBB, detConf, nD);
 			//if there is just a single cluster, re-initialize the tracker
 			if (cluster.cols() / 3 == 1) {
 				tld.currentBB = cluster.col(0);

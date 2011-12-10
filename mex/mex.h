@@ -41,25 +41,28 @@ void fern1(IplImage* source,
 				double, 2, 21> const & scales);
 
 Eigen::RowVectorXd fern2(Eigen::Matrix<double, 10, Eigen::Dynamic> const & X,
-		Eigen::Matrix<double, 1, Eigen::Dynamic> const & Y, double margin,
-		unsigned char bootstrap, Eigen::MatrixXd const & idx);
+		Eigen::VectorXd const & Y, double margin, unsigned char bootstrap,
+		Eigen::VectorXd const & idx);
 
-Eigen::RowVectorXd fern3(Eigen::MatrixXd const & nX2);
+Eigen::RowVectorXd fern3(Eigen::Matrix<double, 10, 10000> const & nX2, int n);
 
-void fern4(ImgType& img, double maxBBox, double minVar, Eigen::MatrixXd& conf,
-		Eigen::MatrixXd& patt);
+void fern4(ImgType& img, double maxBBox, double minVar, Eigen::VectorXd& conf,
+		Eigen::Matrix<double, 10, Eigen::Dynamic>& patt);
 
 Eigen::Matrix<double, NTREES, Eigen::Dynamic> fern5(ImgType& img, std::vector<
 		int>& idx, double var);
 
-Eigen::MatrixXd distance(Eigen::MatrixXd const &x1, Eigen::MatrixXd const &x2,
+Eigen::MatrixXd
+distance(Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), 1> const &x1,
+		Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), MAXPATCHES> const &x2,
 		int nx2, unsigned int flag);
 
 IplImage* warp(IplImage* img, Eigen::Matrix3d const & H,
 		Eigen::Vector4d const & box);
 
-Eigen::VectorXd bb_overlap(Eigen::MatrixXd const & bb1);
-Eigen::MatrixXd bb_overlap(Eigen::Matrix<double, 4, Eigen::Dynamic> const & bb,
+Eigen::VectorXd
+bb_overlap(Eigen::Matrix<double, 4, Eigen::Dynamic> const & bb1);
+Eigen::MatrixXd bb_overlap(Eigen::Matrix<double, 4, Eigen::Dynamic> const & bb, int n1,
 		Eigen::Matrix<double, 4, Eigen::Dynamic> const & bb1);
 Eigen::MatrixXd bb_overlap(
 		Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> const & bb,

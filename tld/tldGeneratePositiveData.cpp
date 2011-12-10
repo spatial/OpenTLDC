@@ -38,8 +38,10 @@
  * @param pEx positive patches
  * @return bbP0 closest bbox
  */
-Eigen::Vector4d tldGeneratePositiveData(TldStruct& tld, Eigen::MatrixXd const & overlap,
-		ImgType& img, p_par& p_par, Eigen::MatrixXd& pX, Eigen::MatrixXd& pEx) {
+Eigen::Vector4d tldGeneratePositiveData(TldStruct& tld,
+		Eigen::MatrixXd const & overlap, ImgType& img, p_par& p_par,
+		Eigen::Matrix<double, NTREES, Eigen::Dynamic>& pX, Eigen::Matrix<
+				double, (PATCHSIZE * PATCHSIZE), Eigen::Dynamic>& pEx) {
 
 	// Get closest bbox
 	Eigen::MatrixXf::Index maxRow, maxCol;
@@ -106,6 +108,8 @@ Eigen::Vector4d tldGeneratePositiveData(TldStruct& tld, Eigen::MatrixXd const & 
 		pEx << pExbuf, tldGetPattern(im1, bbP0, tld.model->patchsize, 1);
 	}
 
+	pX.resize(NTREES, idxPi.size() * p_par.num_warps);
+
 	// warp blur image to duplicate
 	for (unsigned int i = 0; i < p_par.num_warps; i++) {
 
@@ -133,15 +137,7 @@ Eigen::Vector4d tldGeneratePositiveData(TldStruct& tld, Eigen::MatrixXd const & 
 		unsigned int frncols = fernout.cols() / 2;
 
 		 // save indices
-		if (i == 0) {
-			pX.resize(fernout.rows(), frncols);
-			pX = fernout.leftCols(frncols);
-		} else {
-			Eigen::MatrixXd pXbak(pX.rows(), pX.cols());
-			pXbak = pX;
-			pX.resize(pX.rows(), pXbak.cols() + frncols);
-			pX << pXbak, fernout.leftCols(frncols);
-		}
+		pX.block(0, frncols * i, NTREES, frncols) = fernout.leftCols(frncols);
 
 	}
 

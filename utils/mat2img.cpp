@@ -24,7 +24,8 @@
 #include "utility.h"
 
 
-Eigen::MatrixXd mat2img(Eigen::MatrixXd data, int n, unsigned int nrow) {
+Eigen::MatrixXd mat2img(Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE),
+		Eigen::Dynamic> const & data, int n, unsigned int nrow) {
 
 	double result_1 = sqrt(data.rows());
 
@@ -99,7 +100,6 @@ Eigen::MatrixXd mat2img(Eigen::MatrixXd data, int n, unsigned int nrow) {
 
 		for (int j = 0; j < img0.cols(); j++) {
 			for (int k = 0; k < img0.rows(); k++) {
-				//std::cout << "imgsize: " << img.rows() << "x" << img.cols() << " row: " << k + temp << " col: " << j + counter_col << std::endl;
 				img(k + temp,j + counter_col) = img0(k,j);
 				 // Important to determine the last row which was used by img0
 			}

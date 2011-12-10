@@ -35,7 +35,8 @@
  *
  * @return patterns
  */
-Eigen::MatrixXd tldGetPattern(ImgType& img, Eigen::MatrixXd const & bb,
+Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), Eigen::Dynamic> tldGetPattern(
+		ImgType& img, Eigen::Matrix<double, 4, Eigen::Dynamic> const & bb,
 		Patchsize& patchsize, unsigned int flip) {
 
 	// get patch under bounding box (bb), normalize it size,
@@ -51,7 +52,7 @@ Eigen::MatrixXd tldGetPattern(ImgType& img, Eigen::MatrixXd const & bb,
 	for (unsigned int i = 0; i < nBB; i++) {
 
 		// sample patch
-		Eigen::Vector4d tmpbb = bb.block(0, i, 4, 1);
+		Eigen::Vector4d tmpbb = bb.col(i);
 		IplImage* patch = img_patch(img.input, tmpbb);
 
 		// flip if needed

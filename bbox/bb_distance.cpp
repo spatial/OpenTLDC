@@ -26,7 +26,7 @@
 /*Returns the distance between two given bounding boxes*/
 Eigen::MatrixXd bb_distance(Eigen::MatrixXd const & bb1,
 		Eigen::MatrixXd const & bb2) {
-	return 1 - bb_overlap(bb1, bb2).array();
+	return 1 - bb_overlap(bb1, bb2.cols(), bb2).array();
 }
 
 /*Returns the distance between a given bounding box and all

@@ -27,18 +27,18 @@
 #include <math.h>
 
 // correlation
-double ccorr(Eigen::Matrix<double, Eigen::Dynamic, 1> const & f1, Eigen::Matrix<
-		double, Eigen::Dynamic, 1> const & f2,int numDim) {
+double ccorr(Eigen::Matrix<double, Eigen::Dynamic, 1> const & f1,
+		Eigen::Matrix<double, Eigen::Dynamic, 1> const & f2, int numDim) {
 	double f = 0;
-	for (int i = 0; i<numDim; i++) {
-		f += f1(i)*f2(i);
+	for (int i = 0; i < numDim; i++) {
+		f += f1(i) * f2(i);
 	}
 	return f;
 }
 
 // correlation normalized
-double ccorr_normed(Eigen::Matrix<double, Eigen::Dynamic, 1> const & f1, Eigen::Matrix<
-		double, Eigen::Dynamic, 1> const & f2, int numDim) {
+double ccorr_normed(Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), 1> const & f1,
+		Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), 1> const & f2, int numDim) {
 	double corr = 0;
 	double norm1 = 0;
 	double norm2 = 0;
@@ -53,8 +53,8 @@ double ccorr_normed(Eigen::Matrix<double, Eigen::Dynamic, 1> const & f1, Eigen::
 }
 
 // euclidean distance
-double euclidean(Eigen::Matrix<double, Eigen::Dynamic, 1> const & f1, Eigen::Matrix<
-		double, Eigen::Dynamic, 1> const & f2, int numDim) {
+double euclidean(Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), 1> const & f1,
+		Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), 1> const & f2, int numDim) {
 
 	double sum = 0;
 	for (int i = 0; i < numDim; i++) {
@@ -63,8 +63,10 @@ double euclidean(Eigen::Matrix<double, Eigen::Dynamic, 1> const & f1, Eigen::Mat
 	return sqrt(sum);
 }
 
-Eigen::MatrixXd distance(Eigen::MatrixXd const &x1, Eigen::MatrixXd const &x2, int nx2,
-		unsigned int flag) {
+Eigen::MatrixXd distance(
+		Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), 1> const &x1,
+		Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), MAXPATCHES> const &x2,
+		int nx2, unsigned int flag) {
 
 	unsigned int N1 = x1.cols();
 	unsigned int N2 = nx2;

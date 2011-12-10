@@ -67,8 +67,8 @@ void tldInit(TldStruct& tld) {
 
 	// Temporal structures
 	Tmp temporal;
-	temporal.conf = Eigen::MatrixXd::Zero(1, tld.nGrid);
-	temporal.patt = Eigen::MatrixXd::Zero(tld.model->num_trees, tld.nGrid);
+	temporal.conf = Eigen::VectorXd::Zero(tld.nGrid);
+	temporal.patt = Eigen::Matrix<double, 10, Eigen::Dynamic>::Zero(tld.model->num_trees, tld.nGrid);
 	tld.tmp = temporal;
 
 	// RESULTS =================================================================
@@ -89,23 +89,25 @@ void tldInit(TldStruct& tld) {
 	tld.imgsize.m = DIMY;
 	tld.imgsize.n = DIMX;
 
-	Eigen::MatrixXd overlap = bb_overlap(tld.currentBB, tld.grid.topRows(4));
+	Eigen::RowVectorXd overlap = bb_overlap(tld.currentBB, tld.nGrid, tld.grid.topRows(4));
 
 	tld.target = img_patch(tld.currentImg.input, tld.currentBB);
 
 	// Generate Positive Examples
-	Eigen::MatrixXd pX, pEx; // pX: 10 rows
+	Eigen::Matrix<double, NTREES, Eigen::Dynamic> pX; // pX: 10 rows
+	Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), Eigen::Dynamic> pEx;
 	tld.currentBB = tldGeneratePositiveData(tld, overlap, tld.currentImg,
 			tld.p_par_init, pX, pEx);
 
 	Eigen::MatrixXd pY = Eigen::MatrixXd::Ones(1, pX.cols());
 	// Generate Negative Examples
-	Eigen::MatrixXd nX, nEx; // nX: 10 rows
+	Eigen::Matrix<double, NTREES, Eigen::Dynamic> nX; // nX: 10 rows
+	Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), Eigen::Dynamic> nEx;
 	tldGenerateNegativeData(tld, overlap, tld.currentImg, nX, nEx);
 
 	// Split Negative Data to Training set and Validation set
-	Eigen::MatrixXd spnX(nX.rows(), nX.cols());
-	Eigen::MatrixXd spnEx(nEx.rows(), nEx.cols());
+	Eigen::Matrix<double, NTREES, Eigen::Dynamic> spnX;
+	Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), Eigen::Dynamic> spnEx;
 	tldSplitNegativeData(nX, nEx, spnX, spnEx);
 
 	Eigen::MatrixXd nY1 = Eigen::MatrixXd::Zero(1, spnX.cols() / 2);
@@ -121,26 +123,23 @@ void tldInit(TldStruct& tld) {
 	idx = permutate_cols(idx);
 
 	Eigen::MatrixXd permX(xCombined.rows(), xCombined.cols());
-	Eigen::MatrixXd permY(yCombined.rows(), yCombined.cols());
+	Eigen::VectorXd permY(yCombined.cols());
 	for (int i = 0; i < idx.cols(); i++) {
 		permX.col(i) = xCombined.col(idx(i));
-		permY.col(i) = yCombined.col(idx(i));
+		permY(i) = yCombined(0, idx(i));
 	}
 
 	// Train using training set ------------------------------------------------
 
 	// Fern
 	unsigned char bootstrap = 2;
-	Eigen::Matrix2d dummy;
-	dummy(0, 0) = -1;
+	Eigen::VectorXd dummy(1);
+	dummy(0) = -1;
 	fern2(permX, permY, tld.model->thr_fern, bootstrap, dummy);
 
 	// Nearest Neighbour
 	tld.npex = 0;
 	tld.nnex = 0;
-
-	tld.pex.resize(pEx.rows(), 100);
-	tld.nex.resize(pEx.rows(), 100);
 
 	tldTrainNN(pEx, spnEx.leftCols(spnEx.cols() / 2), tld);
 	tld.model->num_init = tld.npex;
@@ -148,8 +147,11 @@ void tldInit(TldStruct& tld) {
 	// Estimate thresholds on validation set  ----------------------------------
 
 	// Fern
-	Eigen::RowVectorXd conf_fern(spnX.cols() / 2);
-	conf_fern = fern3(spnX.rightCols(spnX.cols() / 2));
+	unsigned int ferninsize = spnX.cols() / 2;
+	Eigen::RowVectorXd conf_fern(ferninsize);
+	Eigen::Matrix<double, 10, 10000> fernin;
+	fernin.leftCols(ferninsize) = spnX.rightCols(ferninsize);
+	conf_fern = fern3(fernin, ferninsize);
 	tld.model->thr_fern = std::max(conf_fern.maxCoeff() / tld.model->num_trees,
 			tld.model->thr_fern);
 

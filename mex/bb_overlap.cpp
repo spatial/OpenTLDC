@@ -54,16 +54,16 @@ double bb_overlaphelper(Eigen::Vector4d const & bb1, Eigen::Vector4d const & bb2
 	return intersection / (area1 + area2 - intersection);
 }
 
-Eigen::VectorXd bb_overlap(Eigen::MatrixXd const & bb) {
+Eigen::VectorXd bb_overlap(Eigen::Matrix<double, 4, Eigen::Dynamic> const & bb1) {
 
-	double nBB = bb.cols();
+	double nBB = bb1.cols();
 
 	Eigen::VectorXd out(nBB * (nBB - 1) / 2);
 
 	int counter = 0;
 	for (int i = 0; i < nBB - 1; i++) {
 		for (int j = i + 1; j < nBB; j++) {
-			out(counter) = bb_overlaphelper(bb.col(i), bb.col(j));
+			out(counter) = bb_overlaphelper(bb1.col(i), bb1.col(j));
 			counter++;
 		}
 	}
@@ -71,11 +71,11 @@ Eigen::VectorXd bb_overlap(Eigen::MatrixXd const & bb) {
 }
 
 Eigen::MatrixXd bb_overlap(
-		Eigen::Matrix<double, 4, Eigen::Dynamic> const & bb,
+		Eigen::Matrix<double, 4, Eigen::Dynamic> const & bb, int n1,
 		Eigen::Matrix<double, 4, Eigen::Dynamic> const & bb1) {
 
 	int N = bb.cols();
-	int NN = bb1.cols();
+	int NN = n1;
 
 	if (N == 0 || NN == 0) {
 		N = 0;

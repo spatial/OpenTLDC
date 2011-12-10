@@ -56,16 +56,18 @@ struct Indices {
  * @return confidential values
  *
  */
-Eigen::VectorXd tldDetection(TldStruct& tld, int i, Eigen::MatrixXd& dBB) {
+Eigen::Matrix<double, 20, 1> tldDetection(TldStruct& tld, int i, Eigen::Matrix<
+		double, 4, 20>& dBB, int& n) {
 
-	dBB = Eigen::MatrixXd::Constant(1, 1,
-			std::numeric_limits<double>::quiet_NaN());
-	Eigen::VectorXd confi = Eigen::VectorXd::Zero(1);
+	dBB = Eigen::Matrix<double, 4, 20>::Constant(4, 20, std::numeric_limits<
+			double>::quiet_NaN());
+
+	Eigen::Matrix<double, 20, 1> confi = Eigen::Matrix<double, 20, 1>::Zero(20);
 
 	// evaluates Ensemble Classifier: saves sum of posteriors to 'tld.tmp.conf', saves
 	// measured codes to 'tld.tmp.patt'
-	fern4(tld.currentImg, tld.control.maxbbox, tld.var, tld.tmp.conf, tld.tmp.patt);
-
+	fern4(tld.currentImg, tld.control.maxbbox, tld.var, tld.tmp.conf,
+			tld.tmp.patt);
 
 	// get indexes of bounding boxes that passed through the Ensemble Classifier
 	std::vector<int> idx_dt;
@@ -93,73 +95,57 @@ Eigen::VectorXd tldDetection(TldStruct& tld, int i, Eigen::MatrixXd& dBB) {
 
 	// if nothing detected, return
 	if (num_dt == 0) {
-		tld.dt =  dt;
+		tld.dt = dt;
+		n = 1;
 		return confi;
 	}
 
 	// initialize detection structure
-	Eigen::MatrixXd pattcopy = tld.tmp.patt;
-	dt.bb.resize(4, num_dt);
-	dt.patt.resize(pattcopy.rows(), num_dt);
+	std::vector<int> idxcopy;
+
+	dt.nbb = num_dt;
 	for (int j = 0; j < num_dt; j++) {
-		dt.patt.col(j) = pattcopy.col(idx_dt[j]);
 		dt.bb.col(j) = tld.grid.block(0, idx_dt[j], 4, 1);
-	}
-	dt.idx.resize(1, idx_dt.size());
-	for (int j = 0; j < num_dt; j++)
-		dt.idx(j) = idx_dt[j];
 
-	dt.conf1.resize(num_dt);
-	dt.conf2.resize(num_dt);
-	dt.isin.resize(3, num_dt);
-	dt.patch.resize(tld.model->patchsize.x * tld.model->patchsize.y, num_dt);
-
-	for (int j = 0; j < num_dt; j++) {
-		Eigen::MatrixXd ex = tldGetPattern(tld.currentImg, dt.bb.col(j),
-				tld.model->patchsize, 0); // measure patch
+		Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), 1> ex =
+				tldGetPattern(tld.currentImg, dt.bb.col(j),
+						tld.model->patchsize, 0); // measure patch
 
 		Eigen::MatrixXd result = tldNN(ex, tld); // evaluate nearest neighbour classifier
 
 		// fill detection structure
-		double conf1 = result(0, 0), conf2 = result(0, 1);
-		Eigen::Vector3d isin;
-		isin = result.col(2);
-		dt.conf1(j) = conf1;
-		dt.conf2(j) = conf2;
-		dt.isin.col(j) = isin;
+		if (result(0, 0) > tld.model->thr_nn)
+			idxcopy.push_back(j);
+		dt.conf2(j) = result(0, 1);
 		dt.patch.col(j) = ex;
 	}
 
 	// get all indexes that made it through the nearest neighbour
-	std::vector<int> idxcopy;
-	for (int j = 0; j < num_dt; j++) {
-		if (dt.conf1(j) > tld.model->thr_nn)
-			idxcopy.push_back(j);
-	}
 	int idxsize = idxcopy.size();
 
 	// if no conf bb was detected return nan
 	if (idxsize == 0) {
-		dBB = Eigen::MatrixXd::Constant(1, 1,
+		dBB = Eigen::Matrix<double, 4, 20>::Constant(4, 20,
 				std::numeric_limits<double>::quiet_NaN());
 		tld.dt = dt;
-
+		n = 1;
 		return confi;
 	}
-
 	// save detected bounding boxes
-	dBB.resize(4, idxsize);
+	//dBB.resize(4, idxsize);
+	if (idxsize > 20)
+		idxsize = 20;
 	for (int o = 0; o < idxsize; o++)
 		dBB.col(o) = dt.bb.col(idxcopy[o]);
 
 	// conservative confidences
-	confi.resize(idxsize);
+	//confi.resize(idxsize);
 	for (int o = 0; o < idxsize; o++)
 		confi(o) = dt.conf2(idxcopy[o]);
 
 	// save the whole detection structure
 	tld.dt = dt;
-
+	n = idxsize;
 
 	return confi;
 }

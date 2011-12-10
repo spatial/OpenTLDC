@@ -25,7 +25,10 @@
 #include "../utils/utility.h"
 #include <limits>
 /*Trains nearest neighbor*/
-void tldTrainNN(Eigen::MatrixXd const & pEx, Eigen::MatrixXd const & nEx1, TldStruct& tld) {
+void tldTrainNN(
+		Eigen::Matrix<double, PATCHSIZE * PATCHSIZE, Eigen::Dynamic> const & pEx,
+		Eigen::Matrix<double, PATCHSIZE * PATCHSIZE, Eigen::Dynamic> const & nEx1,
+		TldStruct& tld) {
 
 	unsigned int nP = pEx.cols(); //number of positive examples
 	unsigned int nN = nEx1.cols(); //number of negative examples
@@ -74,7 +77,7 @@ void tldTrainNN(Eigen::MatrixXd const & pEx, Eigen::MatrixXd const & nEx1, TldSt
 		Eigen::MatrixXd conf(3, 3);
 		conf = tldNN(x2.col(i), tld);
 		//Positive
-		if (y2(i) == 1 && conf(0, 0) <= tld.model->thr_nn) {
+		if (y2(i) == 1 && conf(0, 0) <= tld.model->thr_nn && tld.npex < MAXPATCHES) {
 			if (isnan(conf(1, 2))) {
 				tld.npex = 1;
 				tld.pex.col(0) = x2.col(i);
@@ -85,14 +88,15 @@ void tldTrainNN(Eigen::MatrixXd const & pEx, Eigen::MatrixXd const & nEx1, TldSt
 			pex1 = tld.pex.block(0, 0, tld.pex.rows(), conf(1, 2) + 1);
 
 			Eigen::MatrixXd pex2(tld.pex.rows(), tld.npex - pex1.cols());
-			pex2 = tld.pex.block(0, conf(1, 2) + 1, tld.pex.rows(), tld.npex - pex1.cols());
+			pex2 = tld.pex.block(0, conf(1, 2) + 1, tld.pex.rows(), tld.npex
+					- pex1.cols());
 
-			if (pex2.cols() > 0){
+			if (pex2.cols() > 0) {
 				tld.pex.leftCols(conf(1, 2) + 1) = pex1;
 				tld.pex.col(conf(1, 2) + 1) = x2.col(i);
-				tld.pex.block(0, conf(1, 2) + 2, (PATCHSIZE * PATCHSIZE), pex2.cols()) = pex2;
-			}
-			else{
+				tld.pex.block(0, conf(1, 2) + 2, (PATCHSIZE * PATCHSIZE),
+						pex2.cols()) = pex2;
+			} else {
 				tld.pex.leftCols(conf(1, 2) + 1) = pex1;
 				tld.pex.col(conf(1, 2) + 1) = x2.col(i);
 			}
@@ -101,7 +105,7 @@ void tldTrainNN(Eigen::MatrixXd const & pEx, Eigen::MatrixXd const & nEx1, TldSt
 
 		//
 		//Negative
-		if (y2(i) == 0 && conf(0, 0) > 0.5) {
+		if (y2(i) == 0 && conf(0, 0) > 0.5 && tld.nnex < MAXPATCHES) {
 			tld.nex.col(tld.nnex) = x2.col(i);
 			tld.nnex++;
 		}

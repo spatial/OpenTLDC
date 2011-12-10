@@ -24,26 +24,40 @@
 #include "tld.h"
 #include "../utils/utility.h"
 /*Splits negative data to training and validation set*/
-void tldSplitNegativeData(Eigen::MatrixXd const & nX, Eigen::MatrixXd const & nEx,
-		Eigen::MatrixXd& spnX, Eigen::MatrixXd& spnEx) {
+void tldSplitNegativeData(
+		Eigen::Matrix<double, NTREES, Eigen::Dynamic> const & nX,
+		Eigen::Matrix<double, PATCHSIZE * PATCHSIZE, Eigen::Dynamic> const & nEx,
+		Eigen::Matrix<double, NTREES, Eigen::Dynamic>& spnX,
+		Eigen::Matrix<double, PATCHSIZE * PATCHSIZE, Eigen::Dynamic>& spnEx) {
+
 	unsigned int N = nX.cols();
 	Eigen::RowVectorXd Nvec(N);
+
 	for (unsigned int i = 0; i < N; i++)
 		Nvec(i) = i;
+
 	Nvec = permutate_cols(Nvec);
+
 	Eigen::MatrixXd permnX(nX.rows(), nX.cols());
+
 	for (unsigned int i = 0; i < N; i++)
 		permnX.col(i) = nX.col(Nvec(i));
+
 	spnX = permnX;
+
 	N = nEx.cols();
 	Eigen::RowVectorXd Nvec2(N);
+
 	for (unsigned int i = 0; i < N; i++)
 		Nvec2(i) = i;
+
 	Nvec2 = permutate_cols(Nvec2);
+
 	Eigen::MatrixXd permnEx(nEx.rows(), nEx.cols());
+
 	for (unsigned int i = 0; i < N; i++)
 		permnEx.col(i) = nEx.col(Nvec2(i));
-	spnEx = permnEx;
 
+	spnEx = permnEx;
 
 }

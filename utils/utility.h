@@ -29,11 +29,13 @@
 #include <vector>
 #include <math.h>
 #include <Eigen/Core>
+#include "../tld/structs.h"
 
 #include "cv.h"
 #include "highgui.h"
 
-Eigen::MatrixXd mat2img(Eigen::MatrixXd data, int n, unsigned int nrow);
+Eigen::MatrixXd mat2img(Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE),
+		Eigen::Dynamic> const & data, int n, unsigned int nrow);
 
 inline double uniform() {
 	return double(rand()) / (double(RAND_MAX) + 1);

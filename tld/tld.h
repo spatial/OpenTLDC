@@ -24,6 +24,7 @@
 #ifndef TLD_H_
 #define TLD_H_
 
+#include <iostream>
 #include "structs.h"
 #include "cv.h"
 #include "cxcore.h"
@@ -40,7 +41,8 @@ void tldExample(TldStruct* opt, Config& cfg);
 void tldDisplay(int i, unsigned long index, TldStruct& tld, double fps);
 
 /* Detects learned patches */
-Eigen::VectorXd tldDetection(TldStruct& tld, int i, Eigen::MatrixXd& dBB);
+Eigen::Matrix<double, 20, 1> tldDetection(TldStruct& tld, int i, Eigen::Matrix<
+		double, 4, 20>& dBB, int& n);
 
 /* measures initial structures */
 void tldInit(TldStruct& tld/*, CamImage& source, Person& persondetect*/);
@@ -59,31 +61,40 @@ Eigen::VectorXd tldTracking(TldStruct& tld, Eigen::VectorXd const & bb, int i,
 /* duplicates slightly altered previous found positive patches */
 Eigen::Vector4d tldGeneratePositiveData(TldStruct& tld,
 		Eigen::MatrixXd const & overlap, ImgType& img, p_par& p_par,
-		Eigen::MatrixXd& pX, Eigen::MatrixXd& pEx);
+		Eigen::Matrix<double, NTREES, Eigen::Dynamic>& pX, Eigen::Matrix<
+				double, (PATCHSIZE * PATCHSIZE), Eigen::Dynamic>& pEx);
 
 /* pickups bbox and converts to Eigen matrix */
-Eigen::MatrixXd tldGetPattern(ImgType& img, Eigen::MatrixXd const & bb,
+Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), Eigen::Dynamic> tldGetPattern(
+		ImgType& img, Eigen::Matrix<double, 4, Eigen::Dynamic> const & bb,
 		Patchsize& patchsize, unsigned int flip);
 
 /* generates initial some random negative patches */
-void tldGenerateNegativeData(TldStruct& tld, Eigen::MatrixXd const & overlap,
-		ImgType& img, Eigen::MatrixXd& nX, Eigen::MatrixXd& nEx);
+void tldGenerateNegativeData(TldStruct& tld,
+		Eigen::RowVectorXd const & overlap, ImgType& img, Eigen::Matrix<double,
+				NTREES, Eigen::Dynamic>& nX, Eigen::Matrix<double, (PATCHSIZE
+				* PATCHSIZE), Eigen::Dynamic>& nEx);
 
 /* random permutation of generated negatives and splits it to validation and training set */
-void tldSplitNegativeData(Eigen::MatrixXd const & nX,
-		Eigen::MatrixXd const & nEx, Eigen::MatrixXd& spnX,
-		Eigen::MatrixXd& spnEx);
+void tldSplitNegativeData(
+				Eigen::Matrix<double, NTREES, Eigen::Dynamic> const & nX,
+				Eigen::Matrix<double, PATCHSIZE * PATCHSIZE, Eigen::Dynamic> const & nEx,
+				Eigen::Matrix<double, NTREES, Eigen::Dynamic>& spnX,
+				Eigen::Matrix<double, PATCHSIZE * PATCHSIZE, Eigen::Dynamic>& spnEx);
 
 /* Converts an IplImage to Eigen Matrix */
 Eigen::Matrix<double, PATCHSIZE * PATCHSIZE, 1> tldPatch2Pattern(
 		IplImage* patch, Patchsize const& patchsize);
 
 /* Trains nearest neighbor */
-void tldTrainNN(Eigen::MatrixXd const & pEx, Eigen::MatrixXd const & nEx1,
-		TldStruct& tld);
+void tldTrainNN(
+				Eigen::Matrix<double, PATCHSIZE * PATCHSIZE, Eigen::Dynamic> const & pEx,
+				Eigen::Matrix<double, PATCHSIZE * PATCHSIZE, Eigen::Dynamic> const & nEx1,
+				TldStruct& tld);
 
 /* Classifies examples as positive or negative */
-Eigen::MatrixXd tldNN(Eigen::MatrixXd const & nEx2, TldStruct& tld);
+Eigen::Matrix<double, 3, Eigen::Dynamic> tldNN(Eigen::Matrix<double, PATCHSIZE
+		* PATCHSIZE, Eigen::Dynamic> const & nEx2, TldStruct& tld);
 
 /* Shows positive examples */
 IplImage* embedPex(IplImage* img, TldStruct& tld);

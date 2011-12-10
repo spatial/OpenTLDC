@@ -68,17 +68,18 @@ void tldLearning(TldStruct& tld, unsigned long I) {
 	}
 
 	// measure overlap of the current bounding box with the bounding boxes on the grid
-	Eigen::MatrixXd overlap = bb_overlap(bb,
+	Eigen::MatrixXd overlap = bb_overlap(bb, tld.nGrid,
 			tld.grid.topRows(4));
 
 	// generate positive examples from all bounding boxes that are highly
 	// overlapping with current bounding box
-	Eigen::MatrixXd pX, pEx;
+	Eigen::Matrix<double, NTREES, Eigen::Dynamic> pX; // pX: 10 rows
+	Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), Eigen::Dynamic> pEx;
 	Eigen::Vector4d ret = tldGeneratePositiveData(tld, overlap, img,
 			tld.p_par_update, pX, pEx);
 
 	// labels of the positive patches
-	Eigen::MatrixXd pY = Eigen::MatrixXd::Ones(1, pX.cols());
+	Eigen::VectorXd pY = Eigen::VectorXd::Ones(pX.cols());
 
 	// get indexes of negative bounding boxes on the grid (bounding boxes on the grid
 	// that are far from current bounding box and which confidence was larger than 0)
@@ -89,7 +90,7 @@ void tldLearning(TldStruct& tld, unsigned long I) {
 			idx.push_back(k);
 
 	// measure overlap of the current bounding box with detections
-	overlap = bb_overlap(bb, tld.dt.bb);
+	overlap = bb_overlap(bb, tld.dt.nbb, tld.dt.bb);
 
 	// get negative patches that are far from current bounding box
 	len = overlap.cols();
@@ -111,12 +112,12 @@ void tldLearning(TldStruct& tld, unsigned long I) {
 	for (unsigned int k = 0; k < idx.size(); k++)
 		X.col(pXcols + k) = tld.tmp.patt.col(idx[k]);
 
-	Eigen::MatrixXd pY2 = Eigen::MatrixXd::Zero(1, idx.size());
-	Eigen::MatrixXd Y(1, pY.cols() + idx.size());
+	Eigen::VectorXd pY2 = Eigen::VectorXd::Zero(idx.size());
+	Eigen::VectorXd Y(pY.size() + idx.size());
 	Y << pY, pY2;
 
-	Eigen::Matrix2d dummy;
-	dummy(0, 0) = -1;
+	Eigen::VectorXd dummy(1);
+	dummy(0) = -1;
 
 	fern2(X, Y, tld.model->thr_fern, 2, dummy);
 

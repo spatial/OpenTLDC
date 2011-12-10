@@ -243,7 +243,7 @@ int measure_tree_offset(IplImage* img, int idx_bbox, int idx_tree) {
 }
 
 double measure_bbox_offset(IplImage *blur, int idx_bbox, double minVar,
-		Eigen::MatrixXd& patt) {
+		Eigen::Matrix<double, 10, Eigen::Dynamic>& patt) {
 
 	double conf = 0.0;
 
@@ -332,15 +332,15 @@ void fern1(IplImage* source,
 }
 
 Eigen::RowVectorXd fern2(Eigen::Matrix<double, 10, Eigen::Dynamic> const & X,
-		Eigen::Matrix<double, 1, Eigen::Dynamic> const & Y, double margin,
-		unsigned char bootstrap, Eigen::MatrixXd const & idx) {
+		Eigen::VectorXd const & Y, double margin,
+		unsigned char bootstrap, Eigen::VectorXd const & idx) {
 
 	int numX = X.cols();
 	double thrP = margin * nTREES;
 
 	int step = numX / 10;
 
-	if (idx(0, 0) == -1) {
+	if (idx(0) == -1) {
 		for (int j = 0; j < bootstrap; j++) {
 
 			for (int i = 0; i < step; i++) {
@@ -348,7 +348,7 @@ Eigen::RowVectorXd fern2(Eigen::Matrix<double, 10, Eigen::Dynamic> const & X,
 
 					int I = k * step + i;
 					//double *x = X+nTREES*I;
-					if (Y(0, I) == 1) {
+					if (Y(I) == 1) {
 						if (measure_forest(X.col(I)) <= thrP)
 							update(X.col(I), 1, 1);
 					} else {
@@ -361,15 +361,15 @@ Eigen::RowVectorXd fern2(Eigen::Matrix<double, 10, Eigen::Dynamic> const & X,
 		}
 	} else {
 
-		int nIdx = idx.cols(); // ROWVECTOR!
+		int nIdx = idx.size(); // ROWVECTOR!
 
 
 		for (int j = 0; j < bootstrap; j++) {
 
 			for (int i = 0; i < nIdx; i++) {
-				int I = idx(0, i);
+				int I = idx(i);
 				//double *x = X+nTREES*I;
-				if (Y(0, I) == 1) {
+				if (Y(I) == 1) {
 					if (measure_forest(X.col(I)) <= thrP)
 						update(X.col(I), 1, 1);
 				} else {
@@ -390,10 +390,9 @@ Eigen::RowVectorXd fern2(Eigen::Matrix<double, 10, Eigen::Dynamic> const & X,
 	return out;
 }
 
-Eigen::RowVectorXd fern3(Eigen::MatrixXd const & nX2) {
+Eigen::RowVectorXd fern3(Eigen::Matrix<double, 10, 10000> const & nX2, int n) {
 
-	int numX = nX2.cols();
-
+	int numX = n;
 	Eigen::RowVectorXd out(numX);
 
 	for (int i = 0; i < numX; i++)
@@ -402,8 +401,8 @@ Eigen::RowVectorXd fern3(Eigen::MatrixXd const & nX2) {
 	return out;
 }
 
-void fern4(ImgType& img, double maxBBox, double minVar, Eigen::MatrixXd& conf,
-		Eigen::MatrixXd& patt) {
+void fern4(ImgType& img, double maxBBox, double minVar, Eigen::VectorXd& conf,
+		Eigen::Matrix<double, 10, Eigen::Dynamic>& patt) {
 
 	for (int i = 0; i < nBBOX; i++)
 		conf(i) = -1;
