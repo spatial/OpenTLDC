@@ -39,6 +39,9 @@ tldc [args]
 [-nodisplay] : Turns output window off
 [-fr] : First frame index of video stream
 
+You have to set [-x] and [-y] coordinates to apply the initial bounding box
+that should be learned and tracked. 
+
 Example:
 ./tldc -vid "/home/tldc/test.avi" -fr 1061 -x 310 380 -y 110 200
 
