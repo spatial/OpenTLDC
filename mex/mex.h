@@ -44,7 +44,7 @@ Eigen::RowVectorXd fern2(Eigen::Matrix<double, 10, Eigen::Dynamic> const & X,
 		Eigen::VectorXd const & Y, double margin, unsigned char bootstrap,
 		Eigen::VectorXd const & idx);
 
-Eigen::RowVectorXd fern3(Eigen::Matrix<double, 10, 10000> const & nX2, int n);
+Eigen::RowVectorXd fern3(Eigen::Matrix<double, 10, Eigen::Dynamic> const & nX2, int n);
 
 void fern4(ImgType& img, double maxBBox, double minVar, Eigen::VectorXd& conf,
 		Eigen::Matrix<double, 10, Eigen::Dynamic>& patt);
