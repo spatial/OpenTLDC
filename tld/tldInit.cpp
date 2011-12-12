@@ -149,7 +149,7 @@ void tldInit(TldStruct& tld) {
 	// Fern
 	unsigned int ferninsize = spnX.cols() / 2;
 	Eigen::RowVectorXd conf_fern(ferninsize);
-	Eigen::Matrix<double, 10, 10000> fernin;
+	Eigen::Matrix<double, 10, Eigen::Dynamic> fernin(10, ferninsize);
 	fernin.leftCols(ferninsize) = spnX.rightCols(ferninsize);
 	conf_fern = fern3(fernin, ferninsize);
 	tld.model->thr_fern = std::max(conf_fern.maxCoeff() / tld.model->num_trees,

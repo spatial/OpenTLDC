@@ -390,7 +390,7 @@ Eigen::RowVectorXd fern2(Eigen::Matrix<double, 10, Eigen::Dynamic> const & X,
 	return out;
 }
 
-Eigen::RowVectorXd fern3(Eigen::Matrix<double, 10, 10000> const & nX2, int n) {
+Eigen::RowVectorXd fern3(Eigen::Matrix<double, 10, Eigen::Dynamic> const & nX2, int n) {
 
 	int numX = n;
 	Eigen::RowVectorXd out(numX);

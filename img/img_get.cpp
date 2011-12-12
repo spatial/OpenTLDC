@@ -61,9 +61,4 @@ void img_init(Config& cfg) {
 		img = cvQueryFrame(cap);
 		cnt++;
 	}
-
-	grayimg = cvCreateImage(cvGetSize(img), IPL_DEPTH_8U, 1);
-
-
-
 }

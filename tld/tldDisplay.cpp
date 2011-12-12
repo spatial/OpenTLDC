@@ -57,8 +57,6 @@ void tldDisplay(int i, unsigned long index, TldStruct& tld, double fps) {
 		cvShowImage("Result", tld.handle);
 		if (waitKey(10) >= 0)
 			std::cout << "key pressed" << std::endl;
-
-
 	} else {
 
 		// show positive patches
@@ -105,6 +103,9 @@ void tldDisplay(int i, unsigned long index, TldStruct& tld, double fps) {
 							* (y)))[x] = ((uchar*) (dest->imageData
 							+ dest->widthStep * (y)))[x];
 				}
+
+			cvReleaseImage(&patch);
+			cvReleaseImage(&dest);
 		}
 
 		// Replace
@@ -136,6 +137,8 @@ void tldDisplay(int i, unsigned long index, TldStruct& tld, double fps) {
 										+ patch->widthStep * (y - int(bb(1)))))[x
 										- int(bb(0))];
 					}
+
+				cvReleaseImage(&patch);
 			}
 		}
 
