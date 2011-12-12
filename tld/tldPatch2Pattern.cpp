@@ -38,6 +38,8 @@ Eigen::Matrix<double, PATCHSIZE * PATCHSIZE, 1> tldPatch2Pattern(IplImage* patch
 			pattern(x*patchsize.x + y, 0) = double(((uchar*) (dest->imageData + dest->widthStep
 					* (y)))[x]);
 
+	cvReleaseImage(&dest);
+
 	// calculate column-wise mean
 	Eigen::RowVectorXd mean(patchsize.x);
 	mean = pattern.colwise().mean();

@@ -62,6 +62,7 @@ Eigen::Matrix<double, (PATCHSIZE * PATCHSIZE), Eigen::Dynamic> tldGetPattern(
 
 		// normalize size to 'patchsize' and nomalize intensities to ZMUV
 		pattern.col(i) = tldPatch2Pattern(patch, patchsize);
+		cvReleaseImage(&patch);
 	}
 
 	return pattern;
