@@ -129,6 +129,7 @@ Eigen::Vector4d tldGeneratePositiveData(TldStruct& tld,
 									- int(bbH(0))];
 				}
 
+			cvReleaseImage(&patch_blur);
 		}
 
 		// Measures on blured image
